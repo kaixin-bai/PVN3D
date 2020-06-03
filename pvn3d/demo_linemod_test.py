@@ -21,11 +21,11 @@ from datasets.linemod.linemod_dataset import LM_Dataset
 from lib.utils.sync_batchnorm import convert_model
 from lib.utils.pvn3d_eval_utils import cal_frame_poses, cal_frame_poses_lm
 from lib.utils.basic_utils import Basic_Utils
+
 try:
     from neupeak.utils.webcv2 import imshow, waitKey
 except:
     from cv2 import imshow, waitKey
-
 
 parser = argparse.ArgumentParser(description="Arg parser")
 # parser.add_argument(
@@ -102,8 +102,9 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
     model.eval()
     with torch.set_grad_enabled(False):
         cu_dt = [item.to("cuda", non_blocking=True) for item in data]
+        # rgb:[1,3,480,640]    pcld:[1,122881,3]
         rgb, pcld, cld_rgb_nrm, choose, kp_targ_ofst, ctr_targ_ofst, \
-            cls_ids, rts, labels, kp_3ds, ctr_3ds = cu_dt
+        cls_ids, rts, labels, kp_3ds, ctr_3ds = cu_dt
 
         pred_kp_of, pred_rgbd_seg, pred_ctr_of = model(
             cld_rgb_nrm, rgb, choose
@@ -139,14 +140,33 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
                 K = config.intrinsic_matrix["ycb_K1"]
             else:
                 K = config.intrinsic_matrix["linemod"]
+
+            # ----------------------------------------------------------------------------------------------------------
+            # 3D visualization
+            np_xyz = cld_rgb_nrm.cpu().numpy()[0][:, :3]
+            np_rgb = cld_rgb_nrm.cpu().numpy()[0][:, 3:6] / 255.
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(np_xyz)
+            pcd.colors = o3d.utility.Vector3dVector(np_rgb)
+            obj_model = o3d.geometry.PointCloud()
+            obj_model.points = o3d.utility.Vector3dVector(mesh_pts)
+            obj_model.paint_uniform_color(color=[0,0,1])
+            o3d.visualization.draw_geometries([pcd, obj_model])
+            # ----------------------------------------------------------------------------------------------------------
+
             mesh_p2ds = bs_utils.project_p3d(mesh_pts, 1.0, K)
             color = bs_utils.get_label_color(obj_id, n_obj=22, mode=1)
             np_rgb = bs_utils.draw_p2ds(np_rgb, mesh_p2ds, color=color)
         vis_dir = os.path.join(config.log_eval_dir, "pose_vis")
         ensure_fd(vis_dir)
         f_pth = os.path.join(vis_dir, "{}.jpg".format(epoch))
-        cv2.imwrite(f_pth, np_rgb)
-        # imshow("projected_pose_rgb", np_rgb)
+        # cv2.imwrite(f_pth, np_rgb)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # 2D visualization
+        imshow("projected_pose_rgb", np_rgb)
+        # --------------------------------------------------------------------------------------------------------------
+
         # imshow("ori_rgb", ori_rgb)
         # waitKey(1)
     if epoch == 0:
@@ -180,7 +200,7 @@ def main():
     model = nn.DataParallel(model)
 
     for i, data in tqdm.tqdm(
-        enumerate(test_loader), leave=False, desc="val"
+            enumerate(test_loader), leave=False, desc="val"
     ):
         cal_view_pred_pose(model, data, epoch=i, obj_id=obj_id)
 

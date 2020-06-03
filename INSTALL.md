@@ -11,6 +11,7 @@ conda install pytorch==1.0.1 torchvision==0.2.2 cudatoolkit=10.0 -c pytorch
 
 ## build pn++
 cd /data/hdd1/kb/agile/pvn3d_test/PVN3D
+
 python3 setup.py build_ext
 
 ## 下载linemod数据集的checkpoints
@@ -18,9 +19,15 @@ https://hkustconnect-my.sharepoint.com/personal/yhebk_connect_ust_hk/_layouts/15
 
 # 测试
 open3d的10版本如果先import torch再import open3d会有问题：
+
 double free or corruption (out)
+
 Aborted (core dumped)
+
 如果是9版本问题是：
+
 free(): invalid pointer
+
 Aborted (core dumped)
+
 解决方法：先import open3d

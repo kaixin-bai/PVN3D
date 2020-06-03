@@ -7,7 +7,7 @@ This is the source code for ***PVN3D: A Deep Point-wise 3D Keypoints Voting Netw
 - Install CUDA9.0
 - Set up python environment from requirement.txt:
   ```shell
-  pip3 install -r requirement.txt 
+  pip3 install -r requirements.txt 
   ```
 - Install tkinter through ``sudo apt install python3-tk``
 - Install [python-pcl](https://github.com/strawlab/python-pcl).
@@ -112,3 +112,7 @@ Please cite [PVN3D](https://arxiv.org/abs/1911.04231) if you use this repository
   year={2020}
 }
 ```
+
+## what changed?
+1. change pcl to open3d
+

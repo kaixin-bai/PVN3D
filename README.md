@@ -10,7 +10,6 @@ This is the source code for ***PVN3D: A Deep Point-wise 3D Keypoints Voting Netw
   pip3 install -r requirements.txt 
   ```
 - Install tkinter through ``sudo apt install python3-tk``
-- Install [python-pcl](https://github.com/strawlab/python-pcl).
 - Install PointNet++ (refer from [Pointnet2_PyTorch](https://github.com/erikwijmans/Pointnet2_PyTorch)):
   ```shell
   python3 setup.py build_ext

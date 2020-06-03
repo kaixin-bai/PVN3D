@@ -143,15 +143,20 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
 
             # ----------------------------------------------------------------------------------------------------------
             # 3D visualization
-            np_xyz = cld_rgb_nrm.cpu().numpy()[0][:, :3]
-            np_rgb = cld_rgb_nrm.cpu().numpy()[0][:, 3:6] / 255.
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(np_xyz)
-            pcd.colors = o3d.utility.Vector3dVector(np_rgb)
-            obj_model = o3d.geometry.PointCloud()
-            obj_model.points = o3d.utility.Vector3dVector(mesh_pts)
-            obj_model.paint_uniform_color(color=[0,0,1])
-            o3d.visualization.draw_geometries([pcd, obj_model])
+            from copy import deepcopy
+            def vis3d(cld_rgb_nrm):
+                cld_rgb_nrm = deepcopy(cld_rgb_nrm)
+                np_xyz = cld_rgb_nrm.cpu().numpy()[0][:, :3]
+                np_rgb = cld_rgb_nrm.cpu().numpy()[0][:, 3:6] / 255.
+                np_rgb[:, [0, 2]] = np_rgb[:, [2, 0]]
+                pcd = o3d.geometry.PointCloud()
+                pcd.points = o3d.utility.Vector3dVector(np_xyz)
+                pcd.colors = o3d.utility.Vector3dVector(np_rgb)
+                obj_model = o3d.geometry.PointCloud()
+                obj_model.points = o3d.utility.Vector3dVector(mesh_pts)
+                obj_model.paint_uniform_color(color=[0, 0, 1])
+                o3d.visualization.draw_geometries([pcd, obj_model])
+            vis3d(cld_rgb_nrm)
             # ----------------------------------------------------------------------------------------------------------
 
             mesh_p2ds = bs_utils.project_p3d(mesh_pts, 1.0, K)
@@ -160,15 +165,15 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
         vis_dir = os.path.join(config.log_eval_dir, "pose_vis")
         ensure_fd(vis_dir)
         f_pth = os.path.join(vis_dir, "{}.jpg".format(epoch))
-        # cv2.imwrite(f_pth, np_rgb)
 
         # --------------------------------------------------------------------------------------------------------------
         # 2D visualization
+        # cv2.imwrite(f_pth, np_rgb)
         imshow("projected_pose_rgb", np_rgb)
+        # imshow("ori_rgb", ori_rgb)
+        waitKey(0)
         # --------------------------------------------------------------------------------------------------------------
 
-        # imshow("ori_rgb", ori_rgb)
-        # waitKey(1)
     if epoch == 0:
         print("\n\nResults saved in {}".format(vis_dir))
 

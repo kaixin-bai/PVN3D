@@ -17,3 +17,10 @@ python3 setup.py build_ext
 https://hkustconnect-my.sharepoint.com/personal/yhebk_connect_ust_hk/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fyhebk_connect_ust_hk%2FDocuments%2Fpublically shared 共享文件夹%2FPVN3D_pretrained_model%2FLineMOD&originalPath=aHR0cHM6Ly9oa3VzdGNvbm5lY3QtbXkuc2hhcmVwb2ludC5jb20vOmY6L2cvcGVyc29uYWwveWhlYmtfY29ubmVjdF91c3RfaGsvRWhheTVwUHRsLUJHbnZBRWNsWEJSdThCRXBaZUh1Rzl4LWFOX2RqQXR0NXJQQT9ydGltZT1kX21Rc2EwSDJFZw
 
 # 测试
+open3d的10版本如果先import torch再import open3d会有问题：
+double free or corruption (out)
+Aborted (core dumped)
+如果是9版本问题是：
+free(): invalid pointer
+Aborted (core dumped)
+解决方法：先import open3d

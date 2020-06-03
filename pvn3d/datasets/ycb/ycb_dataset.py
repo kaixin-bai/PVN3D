@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import cv2
 # import pcl
@@ -155,6 +154,7 @@ class YCB_Dataset():
     #     n = ne.compute()
     #     n = n.to_array()
     #     return n
+
     def get_normal(self, cld):
         cld = cld.astype(np.float32)
         cloud = o3d.geometry.PointCloud()

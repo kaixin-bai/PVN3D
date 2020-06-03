@@ -19,3 +19,5 @@ plyfile==0.6
 glumpy
 open3d
 tqdm
+plyfile
+scikit-learn

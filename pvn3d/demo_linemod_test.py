@@ -8,6 +8,7 @@ from __future__ import (
 import os
 import tqdm
 import cv2
+import open3d as o3d
 import torch
 import argparse
 import torch.nn as nn
@@ -27,19 +28,22 @@ except:
 
 
 parser = argparse.ArgumentParser(description="Arg parser")
-parser.add_argument(
-    "-checkpoint", type=str, default=None, help="Checkpoint to eval"
-)
-parser.add_argument(
-    "-dataset", type=str, default="linemod",
-    help="Target dataset, ycb or linemod. (linemod as default)."
-)
-parser.add_argument(
-    "-cls", type=str, default="ape",
-    help="Target object to eval in LineMOD dataset. (ape, benchvise, cam, can," +
-    "cat, driller, duck, eggbox, glue, holepuncher, iron, lamp, phone)"
-)
+# parser.add_argument(
+#     "-checkpoint", type=str, default=None, help="Checkpoint to eval"
+# )
+# parser.add_argument(
+#     "-dataset", type=str, default="linemod",
+#     help="Target dataset, ycb or linemod. (linemod as default)."
+# )
+# parser.add_argument(
+#     "-cls", type=str, default="ape",
+#     help="Target object to eval in LineMOD dataset. (ape, benchvise, cam, can," +
+#     "cat, driller, duck, eggbox, glue, holepuncher, iron, lamp, phone)"
+# )
 args = parser.parse_args()
+args.dataset = "linemod"
+args.cls = "ape"
+args.checkpoint = "./train_log/linemod/checkpoints/" + args.cls + "/" + args.cls + "_pvn3d_best.pth.tar"
 
 if args.dataset == "ycb":
     config = Config(dataset_name=args.dataset)

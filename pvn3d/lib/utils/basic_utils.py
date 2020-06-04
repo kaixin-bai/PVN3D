@@ -379,18 +379,27 @@ class Basic_Utils():
         return bgr
 
     def dpt_2_cld(self, dpt, cam_scale, K):
+        """
+        project depth image to point cloud.
+        :param dpt: depth image
+        :param cam_scale: 1000.
+        :param K: camera intrinsic
+        :return:
+        cld: 不含零值的场景点云
+        choose: 图片flatten之后非零处的index
+        """
         if len(dpt.shape) > 2:
             dpt = dpt[:, :, 0]
-        msk_dp = dpt > 1e-6
-        choose = msk_dp.flatten().nonzero()[0].astype(np.uint32)
-        if len(choose) < 1:
+        msk_dp = dpt > 1e-6 # 无零值深度图
+        choose = msk_dp.flatten().nonzero()[0].astype(np.uint32)    # depth image非零值index
+        if len(choose) < 1: # 非法值筛查
             return None, None
 
         dpt_mskd = dpt.flatten()[choose][:, np.newaxis].astype(np.float32)
         xmap_mskd = self.xmap.flatten()[choose][:, np.newaxis].astype(np.float32)
         ymap_mskd = self.ymap.flatten()[choose][:, np.newaxis].astype(np.float32)
 
-        pt2 = dpt_mskd / cam_scale
+        pt2 = dpt_mskd / cam_scale  # z值按照camera scale缩放
         cam_cx, cam_cy = K[0][2], K[1][2]
         cam_fx, cam_fy = K[0][0], K[1][1]
         pt0 = (ymap_mskd - cam_cx) * pt2 / cam_fx

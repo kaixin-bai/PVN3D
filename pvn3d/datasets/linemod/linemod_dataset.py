@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import os
 import cv2
 # import pcl
@@ -27,13 +28,14 @@ class LM_Dataset():
         self.xmap = np.array([[j for i in range(640)] for j in range(480)])
         self.ymap = np.array([[i for i in range(640)] for j in range(480)])
 
-        self.trancolor = transforms.ColorJitter(0.2, 0.2, 0.2, 0.05)
+        self.trancolor = transforms.ColorJitter(0.2, 0.2, 0.2, 0.05)    # 修改(亮度,对比度,饱和度),用以增加噪音brightness, contrast, saturation, hue
         self.norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.224])
         self.obj_dict = self.config.lm_obj_dict
 
         self.cls_type = cls_type
         self.cls_id = self.obj_dict[cls_type]
         print("cls_id in lm_dataset.py", self.cls_id)
+        # lm_root: linemod数据集所在位置
         self.root = os.path.join(self.config.lm_root, 'Linemod_preprocessed')
         self.cls_root = os.path.join(self.root, "data/%02d/" % self.cls_id)
         self.rng = np.random
@@ -41,6 +43,7 @@ class LM_Dataset():
         self.meta_lst = yaml.load(meta_file)
         if dataset_name == 'train':
             self.add_noise = True
+            # 真实图片数据的路径
             real_img_pth = os.path.join(
                 self.cls_root, "train.txt"
             )
@@ -211,16 +214,16 @@ class LM_Dataset():
                     labels = (labels > 0).astype("uint8")
                 cam_scale = 1.0
             else:
-                with Image.open(os.path.join(self.cls_root, "depth/{}.png".format(item_name))) as di:
+                with Image.open(os.path.join(self.cls_root, "depth/{}.png".format(item_name))) as di:   # depth image
                     dpt = np.array(di)
-                with Image.open(os.path.join(self.cls_root, "mask/{}.png".format(item_name))) as li:
+                with Image.open(os.path.join(self.cls_root, "mask/{}.png".format(item_name))) as li:    # label image
                     labels = np.array(li)
                     labels = (labels > 0).astype("uint8")
-                with Image.open(os.path.join(self.cls_root, "rgb/{}.png".format(item_name))) as ri:
+                with Image.open(os.path.join(self.cls_root, "rgb/{}.png".format(item_name))) as ri:     # rgb image
                     if self.add_noise:
-                        ri = self.trancolor(ri)
+                        ri = self.trancolor(ri) # 通过修改亮度对比度饱和度的方式增加噪音
                     rgb = np.array(ri)[:, :, :3]
-                meta = self.meta_lst[int(item_name)]
+                meta = self.meta_lst[int(item_name)]    # meta是ground truth
                 if self.cls_id == 2:
                     for i in range(0, len(meta)):
                         if meta[i]['obj_id'] == 2:
@@ -240,7 +243,7 @@ class LM_Dataset():
                 labels = labels[:, :, 0]
             rgb_labels = labels.copy()
 
-            if self.add_noise and rnd_typ == 'render':
+            if self.add_noise and rnd_typ == 'render':  # 读取虚拟数据
                 rgb = self.rgb_add_noise(rgb)
                 rgb_labels = labels.copy()
                 rgb, dpt = self.add_real_back(rgb, rgb_labels, dpt, msk_dp)
@@ -248,7 +251,7 @@ class LM_Dataset():
                     rgb = self.rgb_add_noise(rgb)
 
             rgb = np.transpose(rgb, (2, 0, 1)) # hwc2chw
-            cld, choose = self.bs_utils.dpt_2_cld(dpt, cam_scale, K)
+            cld, choose = self.bs_utils.dpt_2_cld(dpt, cam_scale, K)    # depth to point cloud
 
             labels = labels.flatten()[choose]
             rgb_lst = []
@@ -261,9 +264,9 @@ class LM_Dataset():
             choose = np.array([choose])
             choose_2 = np.array([i for i in range(len(choose[0, :]))])
 
-            if len(choose_2) < 400:
+            if len(choose_2) < 400: # 如果物体占用的像素小于20*20，即物体过远，return None
                 return None
-            if len(choose_2) > self.config.n_sample_points:
+            if len(choose_2) > self.config.n_sample_points: # 如果物体的点云数量超过了n_sample_points，下采样
                 c_mask = np.zeros(len(choose_2), dtype=int)
                 c_mask[:self.config.n_sample_points] = 1
                 np.random.shuffle(c_mask)

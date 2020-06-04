@@ -81,7 +81,7 @@ This is the source code for ***PVN3D: A Deep Point-wise 3D Keypoints Voting Netw
   You can evaluate different checkpoint by revising the ``tst_mdl`` to the path of your target model.
 - We provide our pre-trained models at [onedrive link](https://hkustconnect-my.sharepoint.com/:f:/g/personal/yhebk_connect_ust_hk/EmQQXKJdC1FDplKS4FQ6n78B4T7eyvhSEsZ8dZySJUmv4w?e=7BwsS5), [baiduyun link](https://pan.baidu.com/s/1hCzqfB3JhOzF3LATsWFFBg) (access code(提取码): h2i5). Download the ycb pre-trained model, move it to ``train_log/ycb/checkpoints/`` and modify ``tst_mdl`` for testing.
 
-### Demo/visualizaion on the LineMOD Dataset
+### Demo/visualizaion on the YCB-Video Dataset
 - After training your model or downloading the pre-trained model, you can start the demo by:
   ```shell
   # commands in demo_ycb.sh

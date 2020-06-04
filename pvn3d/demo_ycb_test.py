@@ -41,9 +41,8 @@ parser = argparse.ArgumentParser(description="Arg parser")
 #     "cat, driller, duck, eggbox, glue, holepuncher, iron, lamp, phone)"
 # )
 args = parser.parse_args()
-args.dataset = "linemod"
-args.cls = "ape"
-args.checkpoint = "./train_log/linemod/checkpoints/" + args.cls + "/" + args.cls + "_pvn3d_best.pth.tar"
+args.dataset = "ycb"
+args.checkpoint = "./train_log/ycb/checkpoints/ycb_pvn3d_best.pth.tar"
 
 if args.dataset == "ycb":
     config = Config(dataset_name=args.dataset)
@@ -111,6 +110,21 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
         )
         _, classes_rgbd = torch.max(pred_rgbd_seg, -1)
 
+        # ----------------------------------------------------------------------------------------------------------
+        # 3D visualization
+        from copy import deepcopy
+        def vis3d(cld_rgb_nrm):
+            cld_rgb_nrm = deepcopy(cld_rgb_nrm)
+            np_xyz = cld_rgb_nrm.cpu().numpy()[0][:, :3]
+            np_rgb = cld_rgb_nrm.cpu().numpy()[0][:, 3:6] / 255.
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(np_xyz)
+            pcd.colors = o3d.utility.Vector3dVector(np_rgb)
+            o3d.visualization.draw_geometries([pcd])
+
+        # vis3d(cld_rgb_nrm)
+        # ----------------------------------------------------------------------------------------------------------
+
         if args.dataset == "ycb":
             pred_cls_ids, pred_pose_lst = cal_frame_poses(
                 pcld[0], classes_rgbd[0], pred_ctr_of[0], pred_kp_of[0], True,
@@ -143,8 +157,8 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
 
             # ----------------------------------------------------------------------------------------------------------
             # 3D visualization
+            from copy import deepcopy
             def vis3d(cld_rgb_nrm):
-                from copy import deepcopy
                 cld_rgb_nrm = deepcopy(cld_rgb_nrm)
                 np_xyz = cld_rgb_nrm.cpu().numpy()[0][:, :3]
                 np_rgb = cld_rgb_nrm.cpu().numpy()[0][:, 3:6] / 255.
@@ -156,7 +170,7 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
                 obj_model.points = o3d.utility.Vector3dVector(mesh_pts)
                 obj_model.paint_uniform_color(color=[0, 0, 1])
                 o3d.visualization.draw_geometries([pcd, obj_model])
-            # vis3d(cld_rgb_nrm)
+            vis3d(cld_rgb_nrm)
             # ----------------------------------------------------------------------------------------------------------
 
             mesh_p2ds = bs_utils.project_p3d(mesh_pts, 1.0, K)
@@ -171,7 +185,7 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
         # cv2.imwrite(f_pth, np_rgb)
         imshow("projected_pose_rgb", np_rgb)
         # imshow("ori_rgb", ori_rgb)
-        waitKey(1)
+        waitKey(0)
         # --------------------------------------------------------------------------------------------------------------
 
     if epoch == 0:

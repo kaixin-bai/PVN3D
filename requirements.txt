@@ -15,7 +15,7 @@ lmdb==0.94
 setuptools==39.1.0
 cffi==1.11.5
 easydict==1.7
-plyfile==0.6
+# plyfile==0.6
 glumpy
 open3d
 tqdm

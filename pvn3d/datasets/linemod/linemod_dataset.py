@@ -165,6 +165,11 @@ class LM_Dataset():
     #     return n
 
     def get_normal(self, cld):
+        """
+        以open3d代替pcl,减少安装痛苦
+        :param cld: numpy.ndarray (n,3), input point cloud
+        :return: numpy.ndarray (n,3), normals
+        """
         cld = cld.astype(np.float32)
         cloud = o3d.geometry.PointCloud()
         cloud.points = o3d.utility.Vector3dVector(cld)
@@ -271,10 +276,10 @@ class LM_Dataset():
                 c_mask[:self.config.n_sample_points] = 1
                 np.random.shuffle(c_mask)
                 choose_2 = choose_2[c_mask.nonzero()]
-            else:
+            else:   # >400但是<n_sample_points, wrap表示用自身数据进行填充
                 choose_2 = np.pad(choose_2, (0, self.config.n_sample_points-len(choose_2)), 'wrap')
 
-            cld_rgb = np.concatenate((cld, rgb_pt), axis=1)
+            cld_rgb = np.concatenate((cld, rgb_pt), axis=1) # 点云和rgb拼一块
             cld_rgb = cld_rgb[choose_2, :]
             cld = cld[choose_2, :]
             normal = self.get_normal(cld)[:, :3]
@@ -291,12 +296,12 @@ class LM_Dataset():
             ctr_targ_ofst = np.zeros((self.config.n_sample_points, 3))
             for i, cls_id in enumerate([1]):
                 RTs[i] = RT
-                r = RT[:, :3]
-                t = RT[:, 3]
-
+                r = RT[:, :3]   # [3,3]
+                t = RT[:, 3]    # (3,)
+                # self.cls_type ==> str('ape')      ctr:center     shape:(3,1)
                 ctr = self.bs_utils.get_ctr(self.cls_type, ds_type="linemod")[:, None]
                 ctr = np.dot(ctr.T, r.T) + t
-                ctr3ds[i, :] = ctr[0]
+                ctr3ds[i, :] = ctr[0]   # ctr3ds (2,3) 保存此图所有物体的center
                 msk_idx = np.where(labels == cls_id)[0]
 
                 target_offset = np.array(np.add(cld, -1.0*ctr3ds[i, :]))
@@ -321,6 +326,8 @@ class LM_Dataset():
                 kp_targ_ofst[msk_idx, :, :] = target_offset[msk_idx, :, :]
 
             # rgb, pcld, cld_rgb_nrm, choose, kp_targ_ofst, ctr_targ_ofst, cls_ids, RTs, labels, kp_3ds, ctr_3ds
+            # rgb:[3,480,640]==>color image; cld:[12288,3]==>point cloud; cld_rgb_nrm:[12288,9]==>points+color+normal
+            # choose:[1,12288]==>choosed nonezero index; kp_targ_ofst:[12288,8,3]==>3dim vector to 8 keypoints
             if DEBUG:
                 return  torch.from_numpy(rgb.astype(np.float32)), \
                         torch.from_numpy(cld.astype(np.float32)), \

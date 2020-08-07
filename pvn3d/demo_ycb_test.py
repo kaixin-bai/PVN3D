@@ -10,6 +10,7 @@ import tqdm
 import cv2
 import open3d as o3d
 import torch
+print(torch.__version__)
 import argparse
 import torch.nn as nn
 import numpy as np
@@ -127,7 +128,7 @@ def cal_view_pred_pose(model, data, epoch=0, obj_id=-1):
 
         if args.dataset == "ycb":
             pred_cls_ids, pred_pose_lst = cal_frame_poses(
-                pcld[0], classes_rgbd[0], pred_ctr_of[0], pred_kp_of[0], True,
+                pcld[0], classes_rgbd[0], pred_ctr_of[0], pred_kp_of[0], True,  # classes_rgbd[0]应该是mask才对
                 config.n_objects, True
             )
         else:
